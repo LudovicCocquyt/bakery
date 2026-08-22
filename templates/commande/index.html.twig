@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commander{% endblock %}
+
+{% block body %}
+    <h1>Passer une commande</h1>
+    <p>Choisis le jour auquel tu souhaites retirer ta commande :</p>
+
+    {% if jours is empty %}
+        <p>Aucun jour de retrait n'est disponible pour le moment, merci de repasser plus tard.</p>
+    {% else %}
+        <div class="carte">
+            {% for jour in jours %}
+                <a class="btn" style="margin: 0.3rem;" href="{{ path('commande_commander', {jour: jour.jour}) }}">
+                    {{ jour.jour|capitalize }}
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

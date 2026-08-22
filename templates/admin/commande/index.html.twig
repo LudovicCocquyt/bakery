@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commandes{% endblock %}
+
+{% block body %}
+    <h1>Commandes</h1>
+
+    <div class="carte">
+        {% for jour in jours %}
+            <a class="btn {{ jourChoisi and jourChoisi.id == jour.id ? '' : 'secondaire' }}" style="margin: 0.2rem;"
+               href="{{ path('admin_commandes_index', {jour: jour.jour}) }}">
+                {{ jour.jour|capitalize }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if jourChoisi is null %}
+        <p>Aucun jour de retrait configuré.</p>
+    {% elseif commandes is empty %}
+        <p>Aucune commande pour {{ jourChoisi.jour }}.</p>
+    {% else %}
+        <p>{{ commandes|length }} commande(s) &mdash; {{ nombreArticles }} article(s) &mdash; total : <strong>{{ total }} €</strong></p>
+
+        {% for commande in commandes %}
+            <div class="carte">
+                <strong>{{ commande.nomClient }}</strong> &mdash; {{ commande.emailClient }}
+                {% if commande.telephoneClient %} &mdash; {{ commande.telephoneClient }}{% endif %}
+                <br><small>Commandé le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
+
+                <table>
+                    <thead><tr><th>Produit</th><th>Quantité</th></tr></thead>
+                    <tbody>
+                    {% for ligne in commande.lignes %}
+                        <tr><td>{{ ligne.produit.nom }}</td><td>{{ ligne.quantite }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <p>Total commande : {{ commande.total }} €</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

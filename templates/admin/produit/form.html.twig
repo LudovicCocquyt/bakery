@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ produit.id ? 'Modifier' : 'Nouveau' }} produit{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('admin_produits_index') }}">&larr; Retour aux produits</a></p>
+    <h1>{{ produit.id ? 'Modifier' : 'Nouveau' }} produit</h1>
+
+    <form method="post">
+        <div class="carte">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" value="{{ produit.nom }}" required>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3">{{ produit.description }}</textarea>
+
+            <label for="prix">Prix (€)</label>
+            <input type="text" id="prix" name="prix" value="{{ produit.prix }}" required>
+
+            <label>
+                <input type="checkbox" name="actif" value="1" {{ produit.actif ? 'checked' : '' }} style="width: auto; display: inline;">
+                Actif (visible pour les clients)
+            </label>
+        </div>
+
+        <div class="carte">
+            <h2>Stock initial par jour de retrait</h2>
+            <p><small>Le stock restant en cours de semaine n'est pas modifié ici — seul le stock initial change, il s'appliquera au prochain reset hebdomadaire.</small></p>
+            {% for jour in jours %}
+                {% set stockExistant = produit.getStockPourJour(jour) %}
+                <label for="stock_{{ jour.id }}">{{ jour.jour|capitalize }}{{ jour.actif ? '' : ' (jour désactivé)' }}</label>
+                <input type="number" id="stock_{{ jour.id }}" name="stocks[{{ jour.id }}]" min="0"
+                       value="{{ stockExistant ? stockExistant.stockInitial : 0 }}">
+            {% else %}
+                <p>Aucun jour de retrait configuré pour le moment.</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn">Enregistrer</button>
+    </form>
+{% endblock %}

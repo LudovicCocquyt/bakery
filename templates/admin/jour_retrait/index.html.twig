@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Jours de retrait{% endblock %}
+
+{% block body %}
+    <h1>Jours de retrait</h1>
+
+    <table>
+        <thead><tr><th>Jour</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+        {% for jour in jours %}
+            <tr>
+                <td>{{ jour.jour|capitalize }}</td>
+                <td><span class="badge {{ jour.actif ? 'actif' : 'inactif' }}">{{ jour.actif ? 'Actif' : 'Inactif' }}</span></td>
+                <td>
+                    <form class="inline" method="post" action="{{ path('admin_jours_basculer', {id: jour.id}) }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('basculer_jour_' ~ jour.id) }}">
+                        <button type="submit" class="btn secondaire">{{ jour.actif ? 'Désactiver' : 'Activer' }}</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="3">Aucun jour configuré.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if joursDisponibles is not empty %}
+        <div class="carte">
+            <h2>Ajouter un jour</h2>
+            <form method="post" action="{{ path('admin_jours_ajouter') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('ajouter_jour') }}">
+                <select name="jour" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #d8cdbc;">
+                    {% for j in joursDisponibles %}
+                        <option value="{{ j }}">{{ j|capitalize }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn" style="margin-top: 0.75rem;">Ajouter</button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}

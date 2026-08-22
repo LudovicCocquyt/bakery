@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commander pour {{ jourRetrait.jour }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('commande_index') }}">&larr; Changer de jour</a></p>
+    <h1>Commande pour retrait le {{ jourRetrait.jour|capitalize }}</h1>
+
+    {% if produits is empty %}
+        <p>Aucun produit disponible pour ce jour pour le moment.</p>
+    {% else %}
+        <form method="post" action="{{ path('commande_traiter', {jour: jourRetrait.jour}) }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('commande') }}">
+
+            <div class="carte">
+                <h2>Produits</h2>
+                <table>
+                    <thead>
+                        <tr><th>Produit</th><th>Prix</th><th>Stock restant</th><th>Quantité</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for produit in produits %}
+                        {% set stock = produit.getStockPourJour(jourRetrait) %}
+                        <tr>
+                            <td>
+                                {{ produit.nom }}
+                                {% if produit.description %}<br><small>{{ produit.description }}</small>{% endif %}
+                            </td>
+                            <td>{{ produit.prix }} €</td>
+                            <td>{{ stock.stockRestant }}</td>
+                            <td>
+                                {% if stock.estEpuise %}
+                                    <span class="badge inactif">Épuisé</span>
+                                {% else %}
+                                    <input type="number" name="quantites[{{ produit.id }}]" min="0" max="{{ stock.stockRestant }}" value="0" style="width: 5rem;">
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="carte">
+                <h2>Tes coordonnées</h2>
+                <label for="nom_client">Nom</label>
+                <input type="text" id="nom_client" name="nom_client" required>
+
+                <label for="email_client">Email</label>
+                <input type="email" id="email_client" name="email_client" required>
+
+                <label for="telephone_client">Téléphone (optionnel)</label>
+                <input type="tel" id="telephone_client" name="telephone_client">
+            </div>
+
+            <button type="submit" class="btn">Valider ma commande</button>
+        </form>
+    {% endif %}
+{% endblock %}
