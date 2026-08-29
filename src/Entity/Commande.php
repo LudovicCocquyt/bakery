@@ -33,6 +33,16 @@ class Commande
     #[ORM\JoinColumn(nullable: false)]
     private ?JourRetrait $jourRetrait = null;
 
+    /**
+     * Date calendaire précise du retrait (ex: 2026-08-27), calculée au moment
+     * de la commande à partir du jour de la semaine choisi. Contrairement à
+     * JourRetrait (qui ne porte que le nom du jour, ex: "jeudi", partagé par
+     * toutes les semaines), ce champ permet de distinguer une commande pour
+     * "jeudi prochain" d'une commande pour "jeudi de la semaine dernière".
+     */
+    #[ORM\Column(type: 'date_immutable')]
+    private ?\DateTimeImmutable $dateRetrait = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $dateCommande = null;
 
@@ -104,6 +114,18 @@ class Commande
         return $this;
     }
 
+    public function getDateRetrait(): ?\DateTimeImmutable
+    {
+        return $this->dateRetrait;
+    }
+
+    public function setDateRetrait(\DateTimeImmutable $dateRetrait): static
+    {
+        $this->dateRetrait = $dateRetrait;
+
+        return $this;
+    }
+
     public function getDateCommande(): ?\DateTimeImmutable
     {
         return $this->dateCommande;
@@ -137,19 +159,5 @@ class Commande
         }
 
         return $this;
-    }
-
-    /**
-     * Total de la commande, calculé à partir des lignes (prix figé au moment
-     * de la commande, donc fiable même si le prix du produit change ensuite).
-     */
-    public function getTotal(): string
-    {
-        $total = '0.00';
-        foreach ($this->lignes as $ligne) {
-            $total = bcadd($total, $ligne->getSousTotal(), 2);
-        }
-
-        return $total;
     }
 }

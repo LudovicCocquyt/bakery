@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catégories{% endblock %}
+
+{% block body %}
+    <h1>Catégories de produits</h1>
+
+    {% for categorie in categories %}
+        <div class="carte" style="display: flex; align-items: end; gap: 1rem; flex-wrap: wrap;">
+            <form method="post" action="{{ path('admin_categories_modifier', {id: categorie.id}) }}" style="display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; flex: 1;">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('modifier_categorie_' ~ categorie.id) }}">
+                <div>
+                    <label for="nom_{{ categorie.id }}">Nom</label>
+                    <input type="text" id="nom_{{ categorie.id }}" name="nom" value="{{ categorie.nom }}">
+                </div>
+                <div>
+                    <label for="ordre_{{ categorie.id }}">Ordre</label>
+                    <input type="number" id="ordre_{{ categorie.id }}" name="ordre" value="{{ categorie.ordre }}" style="width: 5rem;">
+                </div>
+                <button type="submit" class="btn secondaire">Enregistrer</button>
+            </form>
+            <form method="post" action="{{ path('admin_categories_supprimer', {id: categorie.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ? Les produits associés repasseront sans catégorie.');">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('supprimer_categorie_' ~ categorie.id) }}">
+                <button type="submit" class="btn danger">Supprimer</button>
+            </form>
+        </div>
+    {% else %}
+        <p>Aucune catégorie pour le moment.</p>
+    {% endfor %}
+
+    <div class="carte">
+        <h2>Ajouter une catégorie</h2>
+        <form method="post" action="{{ path('admin_categories_nouvelle') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('ajouter_categorie') }}">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" required>
+            <label for="ordre">Ordre d'affichage (les plus petits nombres apparaissent en premier)</label>
+            <input type="number" id="ordre" name="ordre" value="0">
+            <button type="submit" class="btn" style="margin-top: 0.75rem;">Ajouter</button>
+        </form>
+    </div>
+{% endblock %}

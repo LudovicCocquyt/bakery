@@ -21,12 +21,22 @@ class LigneCommande
     #[ORM\JoinColumn(nullable: false)]
     private ?Produit $produit = null;
 
+    /**
+     * Renseigné uniquement pour un produit vendu au kilo : la variante
+     * précise choisie (ex: "500g"). Null pour un produit vendu à la pièce.
+     */
+    #[ORM\ManyToOne(targetEntity: VarianteProduit::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?VarianteProduit $varianteProduit = null;
+
     #[ORM\Column]
     private int $quantite = 1;
 
     /**
-     * Prix unitaire au moment de la commande (on ne se base jamais sur
-     * le prix courant du produit, qui peut changer après coup).
+     * Prix affiché pour cette ligne au moment de la commande (celui du
+     * produit s'il est vendu à la pièce, celui de la variante choisie
+     * s'il est vendu au kilo). Purement informatif : on ne le multiplie
+     * jamais par la quantité, on l'affiche tel quel.
      */
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private ?string $prixUnitaire = null;
@@ -60,6 +70,18 @@ class LigneCommande
         return $this;
     }
 
+    public function getVarianteProduit(): ?VarianteProduit
+    {
+        return $this->varianteProduit;
+    }
+
+    public function setVarianteProduit(?VarianteProduit $varianteProduit): static
+    {
+        $this->varianteProduit = $varianteProduit;
+
+        return $this;
+    }
+
     public function getQuantite(): int
     {
         return $this->quantite;
@@ -84,8 +106,16 @@ class LigneCommande
         return $this;
     }
 
-    public function getSousTotal(): string
+    /**
+     * Libellé complet de ce qui a été commandé, ex: "Pain de campagne (500g)"
+     * ou juste "Baguette" pour un produit à la pièce.
+     */
+    public function getLibelleComplet(): string
     {
-        return bcmul($this->prixUnitaire ?? '0', (string) $this->quantite, 2);
+        if (null !== $this->varianteProduit) {
+            return sprintf('%s (%s)', $this->produit?->getNom(), $this->varianteProduit->getLibelle());
+        }
+
+        return (string) $this->produit?->getNom();
     }
 }

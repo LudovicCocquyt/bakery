@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Repository\JourRetraitRepository;
 use App\Repository\StockProduitRepository;
+use App\Repository\StockVarianteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -41,6 +42,7 @@ class ResetStockCommand extends Command
     public function __construct(
         private readonly JourRetraitRepository $jourRetraitRepository,
         private readonly StockProduitRepository $stockProduitRepository,
+        private readonly StockVarianteRepository $stockVarianteRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -86,11 +88,18 @@ class ResetStockCommand extends Command
             $stock->reinitialiser();
         }
 
+        $stocksVariantes = $this->stockVarianteRepository->trouverParJour($jourRetrait);
+
+        foreach ($stocksVariantes as $stock) {
+            $stock->reinitialiser();
+        }
+
         $this->entityManager->flush();
 
         $io->success(sprintf(
-            '%d ligne(s) de stock réinitialisée(s) pour "%s".',
+            '%d ligne(s) de stock produit + %d ligne(s) de stock variante réinitialisée(s) pour "%s".',
             count($stocks),
+            count($stocksVariantes),
             $nomJour
         ));
 

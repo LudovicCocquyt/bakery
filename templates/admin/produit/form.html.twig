@@ -6,7 +6,7 @@
     <p><a href="{{ path('admin_produits_index') }}">&larr; Retour aux produits</a></p>
     <h1>{{ produit.id ? 'Modifier' : 'Nouveau' }} produit</h1>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <div class="carte">
             <label for="nom">Nom</label>
             <input type="text" id="nom" name="nom" value="{{ produit.nom }}" required>
@@ -14,16 +14,47 @@
             <label for="description">Description</label>
             <textarea id="description" name="description" rows="3">{{ produit.description }}</textarea>
 
-            <label for="prix">Prix (€)</label>
-            <input type="text" id="prix" name="prix" value="{{ produit.prix }}" required>
+            <label for="categorie">Catégorie</label>
+            <select id="categorie" name="categorie" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #d8cdbc;">
+                <option value="">Sans catégorie</option>
+                {% for categorie in categories %}
+                    <option value="{{ categorie.id }}" {{ produit.categorie and produit.categorie.id == categorie.id ? 'selected' : '' }}>{{ categorie.nom }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="image">Image</label>
+            {% if produit.image %}
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}" style="max-width: 150px; border-radius: 6px; display: block; margin-bottom: 0.3rem;">
+                    <label style="font-weight: normal;">
+                        <input type="checkbox" name="supprimer_image" value="1" style="width: auto; display: inline;">
+                        Supprimer l'image actuelle
+                    </label>
+                </div>
+            {% endif %}
+            <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+            <p><small>Formats acceptés : jpg, png, webp.</small></p>
 
             <label>
                 <input type="checkbox" name="actif" value="1" {{ produit.actif ? 'checked' : '' }} style="width: auto; display: inline;">
                 Actif (visible pour les clients)
             </label>
+
+            <label>Vente</label>
+            <label style="font-weight: normal;">
+                <input type="radio" name="unite" value="piece" onclick="afficherSectionUnite('piece')" {{ produit.estVenduAuKilo ? '' : 'checked' }} style="width: auto; display: inline;">
+                À la pièce
+            </label>
+            <label style="font-weight: normal;">
+                <input type="radio" name="unite" value="kilo" onclick="afficherSectionUnite('kilo')" {{ produit.estVenduAuKilo ? 'checked' : '' }} style="width: auto; display: inline;">
+                Au kilo (avec des options : 250g, 500g...)
+            </label>
+
+            <label for="prix" id="label-prix">Prix à la pièce (€)</label>
+            <input type="text" id="prix" name="prix" value="{{ produit.prix }}" required>
         </div>
 
-        <div class="carte">
+        <div class="carte" id="section-piece">
             <h2>Stock initial par jour de retrait</h2>
             <p><small>Le stock restant en cours de semaine n'est pas modifié ici — seul le stock initial change, il s'appliquera au prochain reset hebdomadaire.</small></p>
             {% for jour in jours %}
@@ -36,6 +67,62 @@
             {% endfor %}
         </div>
 
+        <div class="carte" id="section-kilo">
+            <h2>Variantes (options de stock)</h2>
+            <p><small>Ex: "250g", "500g", "1kg" — le prix affiché au client est toujours le prix au kg ci-dessus, chaque variante ne sert qu'à gérer un stock séparé. Laisse le libellé vide pour ne pas créer/garder une variante.</small></p>
+
+            <div id="liste-variantes">
+                {% for variante in produit.variantes %}
+                    {{ _self.ligne_variante(variante.id, variante.libelle, jours, variante) }}
+                {% endfor %}
+            </div>
+
+            <button type="button" class="btn secondaire" onclick="ajouterVariante()">+ Ajouter une variante</button>
+        </div>
+
         <button type="submit" class="btn">Enregistrer</button>
     </form>
+
+    <template id="template-variante">
+        {{ _self.ligne_variante('__CLE__', '', jours, null) }}
+    </template>
+
+    <script>
+        function afficherSectionUnite(unite) {
+            document.getElementById('section-piece').style.display = (unite === 'piece') ? 'block' : 'none';
+            document.getElementById('section-kilo').style.display = (unite === 'kilo') ? 'block' : 'none';
+            document.getElementById('label-prix').textContent = (unite === 'piece') ? 'Prix à la pièce (€)' : 'Prix au kg (€)';
+        }
+
+        let compteurNouvelleVariante = 0;
+
+        function ajouterVariante() {
+            const template = document.getElementById('template-variante').innerHTML;
+            const cle = 'nouveau_' + (compteurNouvelleVariante++);
+            const html = template.replace(/__CLE__/g, cle);
+            const conteneur = document.createElement('div');
+            conteneur.innerHTML = html;
+            document.getElementById('liste-variantes').appendChild(conteneur.firstElementChild);
+        }
+
+        // Affiche la bonne section et le bon libellé au chargement.
+        afficherSectionUnite(document.querySelector('input[name="unite"]:checked').value);
+    </script>
 {% endblock %}
+
+{% macro ligne_variante(cle, libelle, jours, varianteExistante) %}
+    <div class="carte" style="background: #faf6ee;">
+        <label>Libellé (ex: 500g)</label>
+        <input type="text" name="variantes[{{ cle }}][libelle]" value="{{ libelle }}">
+
+        <label>Stock par jour</label>
+        {% for jour in jours %}
+            {% set stockVariante = varianteExistante ? varianteExistante.getStockPourJour(jour) : null %}
+            <div style="display: inline-block; margin-right: 1rem;">
+                <small>{{ jour.jour|capitalize }}</small><br>
+                <input type="number" name="variantes[{{ cle }}][stocks][{{ jour.id }}]" min="0"
+                       value="{{ stockVariante ? stockVariante.stockInitial : 0 }}" style="width: 5rem;">
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}

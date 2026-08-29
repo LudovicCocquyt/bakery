@@ -8,21 +8,17 @@
 
     <table>
         <thead>
-            <tr><th>Nom</th><th>Prix</th><th>Statut</th><th>Stock par jour</th><th></th></tr>
+            <tr><th></th><th>Nom</th><th>Catégorie</th><th>Vente</th><th>Prix</th><th>Statut</th><th></th></tr>
         </thead>
         <tbody>
         {% for produit in produits %}
             <tr>
+                <td>{% if produit.image %}<img class="miniature" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">{% endif %}</td>
                 <td>{{ produit.nom }}</td>
-                <td>{{ produit.prix }} €</td>
+                <td>{{ produit.categorie ? produit.categorie.nom : '—' }}</td>
+                <td>{{ produit.estVenduAuKilo ? 'Au kilo (' ~ produit.variantes|length ~ ' variante(s))' : 'À la pièce' }}</td>
+                <td>{{ produit.prix }} €{{ produit.estVenduAuKilo ? '/kg' : '' }}</td>
                 <td><span class="badge {{ produit.actif ? 'actif' : 'inactif' }}">{{ produit.actif ? 'Actif' : 'Inactif' }}</span></td>
-                <td>
-                    {% for stock in produit.stocks %}
-                        {{ stock.jourRetrait.jour }} : {{ stock.stockRestant }}/{{ stock.stockInitial }}{% if not loop.last %}, {% endif %}
-                    {% else %}
-                        <em>aucun</em>
-                    {% endfor %}
-                </td>
                 <td>
                     <a href="{{ path('admin_produits_modifier', {id: produit.id}) }}" class="btn secondaire">Modifier</a>
                     <form class="inline" method="post" action="{{ path('admin_produits_supprimer', {id: produit.id}) }}" onsubmit="return confirm('Supprimer ce produit ?');">
@@ -32,7 +28,7 @@
                 </td>
             </tr>
         {% else %}
-            <tr><td colspan="5">Aucun produit pour le moment.</td></tr>
+            <tr><td colspan="7">Aucun produit pour le moment.</td></tr>
         {% endfor %}
         </tbody>
     </table>

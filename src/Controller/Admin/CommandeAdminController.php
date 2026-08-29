@@ -20,31 +20,68 @@ class CommandeAdminController extends AbstractController
         JourRetraitRepository $jourRetraitRepository,
         CommandeRepository $commandeRepository,
     ): Response {
-        $jours = $jourRetraitRepository->findAll();
+        // Date choisie via ?date=2026-08-27, sinon aujourd'hui par défaut.
+        $dateParametre = $request->query->get('date');
+        try {
+            $dateChoisie = $dateParametre
+                ? new \DateTimeImmutable($dateParametre)
+                : new \DateTimeImmutable('today');
+        } catch (\Exception) {
+            $dateChoisie = new \DateTimeImmutable('today');
+        }
+        // On ignore l'heure : on ne compare que la date calendaire.
+        $dateChoisie = $dateChoisie->setTime(0, 0);
 
-        // Jour choisi via ?jour=samedi, sinon le premier jour actif par défaut.
-        $nomJourChoisi = $request->query->get('jour');
-        $jourChoisi = $nomJourChoisi
-            ? $jourRetraitRepository->trouverParNomJour($nomJourChoisi)
-            : ($jourRetraitRepository->trouverActifs()[0] ?? null);
+        $commandes = $commandeRepository->trouverParDateRetrait($dateChoisie);
 
-        $commandes = $jourChoisi ? $commandeRepository->trouverParJour($jourChoisi) : [];
+        // Liste des dates ayant réellement des commandes, pour construire
+        // une navigation "date précédente / date suivante" qui saute
+        // directement d'une date connue à une autre (plutôt que de
+        // proposer des jours vides un par un).
+        $datesAvecCommandes = $commandeRepository->trouverDatesRetraitAvecCommandes();
 
-        $total = '0.00';
-        $nombreArticles = 0;
-        foreach ($commandes as $commande) {
-            $total = bcadd($total, $commande->getTotal(), 2);
-            foreach ($commande->getLignes() as $ligne) {
-                $nombreArticles += $ligne->getQuantite();
+        $dateSuivante = null;
+        $datePrecedente = null;
+        foreach ($datesAvecCommandes as $date) {
+            if ($date > $dateChoisie && (null === $dateSuivante || $date < $dateSuivante)) {
+                $dateSuivante = $date;
+            }
+            if ($date < $dateChoisie && (null === $datePrecedente || $date > $datePrecedente)) {
+                $datePrecedente = $date;
             }
         }
 
+        $nombreArticles = 0;
+        /** @var array<string, array<string, int>> $totauxParCategorie */
+        $totauxParCategorie = [];
+
+        foreach ($commandes as $commande) {
+            foreach ($commande->getLignes() as $ligne) {
+                $nombreArticles += $ligne->getQuantite();
+                $libelle = $ligne->getLibelleComplet();
+                $categorie = $ligne->getProduit()->getCategorie();
+                $nomCategorie = $categorie?->getNom() ?? 'Sans catégorie';
+
+                $totauxParCategorie[$nomCategorie][$libelle] =
+                    ($totauxParCategorie[$nomCategorie][$libelle] ?? 0) + $ligne->getQuantite();
+            }
+        }
+
+        // Tri des produits par quantité décroissante à l'intérieur de chaque catégorie.
+        foreach ($totauxParCategorie as &$produitsDeLaCategorie) {
+            arsort($produitsDeLaCategorie);
+        }
+        unset($produitsDeLaCategorie);
+        ksort($totauxParCategorie);
+
         return $this->render('admin/commande/index.html.twig', [
-            'jours' => $jours,
-            'jourChoisi' => $jourChoisi,
+            'jours' => $jourRetraitRepository->findAll(),
+            'dateChoisie' => $dateChoisie,
+            'datePrecedente' => $datePrecedente,
+            'dateSuivante' => $dateSuivante,
             'commandes' => $commandes,
-            'total' => $total,
             'nombreArticles' => $nombreArticles,
+            'totauxParCategorie' => $totauxParCategorie,
         ]);
     }
 }

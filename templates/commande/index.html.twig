@@ -6,13 +6,13 @@
     <h1>Passer une commande</h1>
     <p>Choisis le jour auquel tu souhaites retirer ta commande :</p>
 
-    {% if jours is empty %}
+    {% if joursAvecDate is empty %}
         <p>Aucun jour de retrait n'est disponible pour le moment, merci de repasser plus tard.</p>
     {% else %}
         <div class="carte">
-            {% for jour in jours %}
-                <a class="btn" style="margin: 0.3rem;" href="{{ path('commande_commander', {jour: jour.jour}) }}">
-                    {{ jour.jour|capitalize }}
+            {% for item in joursAvecDate %}
+                <a class="btn" style="margin: 0.3rem;" href="{{ path('commande_commander', {jour: item.jourRetrait.jour}) }}">
+                    {{ item.jourRetrait.jour|capitalize }} {{ item.date|date('d/m') }}
                 </a>
             {% endfor %}
         </div>

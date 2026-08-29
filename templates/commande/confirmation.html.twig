@@ -4,25 +4,23 @@
 
 {% block body %}
     <h1>Merci {{ commande.nomClient }} !</h1>
-    <p>Ta commande est confirmée pour un retrait le <strong>{{ commande.jourRetrait.jour|capitalize }}</strong>.</p>
+    <p>Ta commande est confirmée pour un retrait le <strong>{{ commande.jourRetrait.jour|capitalize }} {{ commande.dateRetrait|date('d/m/Y') }}</strong>.</p>
 
     <div class="carte">
         <table>
             <thead>
-                <tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th></tr>
+                <tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr>
             </thead>
             <tbody>
             {% for ligne in commande.lignes %}
                 <tr>
-                    <td>{{ ligne.produit.nom }}</td>
+                    <td>{{ ligne.libelleComplet }}</td>
                     <td>{{ ligne.quantite }}</td>
-                    <td>{{ ligne.prixUnitaire }} €</td>
-                    <td>{{ ligne.sousTotal }} €</td>
+                    <td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '' }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
-        <p><strong>Total : {{ commande.total }} €</strong></p>
     </div>
 
     <a href="{{ path('commande_index') }}" class="btn secondaire">Passer une autre commande</a>

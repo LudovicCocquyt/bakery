@@ -5,22 +5,54 @@
 {% block body %}
     <h1>Commandes</h1>
 
-    <div class="carte">
-        {% for jour in jours %}
-            <a class="btn {{ jourChoisi and jourChoisi.id == jour.id ? '' : 'secondaire' }}" style="margin: 0.2rem;"
-               href="{{ path('admin_commandes_index', {jour: jour.jour}) }}">
-                {{ jour.jour|capitalize }}
-            </a>
-        {% endfor %}
+    <div class="carte" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+            {% if datePrecedente %}
+                <a class="btn secondaire" href="{{ path('admin_commandes_index', {date: datePrecedente|date('Y-m-d')}) }}">&larr; {{ datePrecedente|date('d/m/Y') }}</a>
+            {% endif %}
+        </div>
+
+        <form method="get" style="margin: 0;">
+            <input type="date" name="date" value="{{ dateChoisie|date('Y-m-d') }}"
+                   onchange="this.form.submit()"
+                   style="padding: 0.5rem; border-radius: 6px; border: 1px solid #d8cdbc;">
+        </form>
+
+        <div>
+            {% if dateSuivante %}
+                <a class="btn secondaire" href="{{ path('admin_commandes_index', {date: dateSuivante|date('Y-m-d')}) }}">{{ dateSuivante|date('d/m/Y') }} &rarr;</a>
+            {% endif %}
+        </div>
     </div>
 
-    {% if jourChoisi is null %}
-        <p>Aucun jour de retrait configuré.</p>
-    {% elseif commandes is empty %}
-        <p>Aucune commande pour {{ jourChoisi.jour }}.</p>
-    {% else %}
-        <p>{{ commandes|length }} commande(s) &mdash; {{ nombreArticles }} article(s) &mdash; total : <strong>{{ total }} €</strong></p>
+    <h2>Retrait du {{ dateChoisie|date('d/m/Y') }} {% if dateChoisie|date('N') <= 5 %}({{ dateChoisie|date('l') }}){% endif %}</h2>
 
+    {% if commandes is empty %}
+        <p>Aucune commande pour cette date.
+            {% if datePrecedente %}
+                <a href="{{ path('admin_commandes_index', {date: datePrecedente|date('Y-m-d')}) }}">Voir la date précédente avec des commandes ({{ datePrecedente|date('d/m/Y') }})</a>.
+            {% endif %}
+        </p>
+    {% else %}
+        <div class="carte">
+            <h2>Total à préparer</h2>
+            {% for nomCategorie, produits in totauxParCategorie %}
+                <h3 class="nom-categorie" style="font-size: 1rem; margin-top: 1rem;">{{ nomCategorie }}</h3>
+                <table>
+                    <thead><tr><th>Produit</th><th>Quantité totale</th></tr></thead>
+                    <tbody>
+                    {% for libelle, quantite in produits %}
+                        <tr><td>{{ libelle }}</td><td><strong>{{ quantite }}</strong></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+            <p style="margin-top: 0.75rem;">
+                {{ commandes|length }} commande(s) &mdash; {{ nombreArticles }} article(s) au total
+            </p>
+        </div>
+
+        <h2>Détail des commandes</h2>
         {% for commande in commandes %}
             <div class="carte">
                 <strong>{{ commande.nomClient }}</strong> &mdash; {{ commande.emailClient }}
@@ -28,14 +60,13 @@
                 <br><small>Commandé le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
 
                 <table>
-                    <thead><tr><th>Produit</th><th>Quantité</th></tr></thead>
+                    <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr></thead>
                     <tbody>
                     {% for ligne in commande.lignes %}
-                        <tr><td>{{ ligne.produit.nom }}</td><td>{{ ligne.quantite }}</td></tr>
+                        <tr><td>{{ ligne.libelleComplet }}</td><td>{{ ligne.quantite }}</td><td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '' }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
-                <p>Total commande : {{ commande.total }} €</p>
             </div>
         {% endfor %}
     {% endif %}
