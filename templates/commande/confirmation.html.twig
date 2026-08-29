@@ -16,7 +16,7 @@
                 <tr>
                     <td>{{ ligne.libelleComplet }}</td>
                     <td>{{ ligne.quantite }}</td>
-                    <td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '' }}</td>
+                    <td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td>
                 </tr>
             {% endfor %}
             </tbody>

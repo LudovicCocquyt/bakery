@@ -63,7 +63,7 @@
                     <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr></thead>
                     <tbody>
                     {% for ligne in commande.lignes %}
-                        <tr><td>{{ ligne.libelleComplet }}</td><td>{{ ligne.quantite }}</td><td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '' }}</td></tr>
+                        <tr><td>{{ ligne.libelleComplet }}</td><td>{{ ligne.quantite }}</td><td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

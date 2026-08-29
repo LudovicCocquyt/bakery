@@ -34,7 +34,7 @@ class CommandeController extends AbstractController
                 'jourRetrait' => $jour,
                 'date' => $commandeService->prochaineDateDisponible($jour->getJour()),
             ],
-            $jourRetraitRepository->trouverActifs()
+            $jourRetraitRepository->trouverActifsTriesParJourSemaine()
         );
 
         return $this->render('commande/index.html.twig', [

@@ -33,7 +33,7 @@
                                     <td>
                                         {{ produit.nom }}
                                         {% if produit.description %}
-                                            <span class="info-bulle" title="{{ produit.description }}">i</span>
+                                            <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
                                         {% endif %}
                                     </td>
                                     <td>{{ produit.prix }} €</td>
@@ -60,7 +60,7 @@
                                 <h3 style="margin: 0 0 0.3rem 0;">
                                     {{ produit.nom }}
                                     {% if produit.description %}
-                                        <span class="info-bulle" title="{{ produit.description }}">i</span>
+                                        <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
                                     {% endif %}
                                 </h3>
                                 <p style="margin: 0 0 0.5rem 0;"><strong>Prix au kg : {{ produit.prix }} €</strong></p>
@@ -95,7 +95,7 @@
 
             <div class="carte">
                 <h2>Tes coordonnées</h2>
-                <label for="nom_client">Nom</label>
+                <label for="nom_client">Nom & prénom</label>
                 <input type="text" id="nom_client" name="nom_client" required>
 
                 <label for="email_client">Email</label>

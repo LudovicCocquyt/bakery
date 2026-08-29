@@ -34,7 +34,7 @@ class ProduitAdminController extends AbstractController
     public function index(ProduitRepository $produitRepository): Response
     {
         return $this->render('admin/produit/index.html.twig', [
-            'produits' => $produitRepository->findAll(),
+            'produits' => $produitRepository->trouverTousTriesParCategorie(),
         ]);
     }
 
@@ -56,7 +56,7 @@ class ProduitAdminController extends AbstractController
 
         return $this->render('admin/produit/form.html.twig', [
             'produit' => $produit,
-            'jours' => $jourRetraitRepository->findAll(),
+            'jours' => $jourRetraitRepository->trouverTriesParJourSemaine(),
             'categories' => $categorieRepository->trouverTriees(),
         ]);
     }
@@ -76,7 +76,7 @@ class ProduitAdminController extends AbstractController
 
         return $this->render('admin/produit/form.html.twig', [
             'produit' => $produit,
-            'jours' => $jourRetraitRepository->findAll(),
+            'jours' => $jourRetraitRepository->trouverTriesParJourSemaine(),
             'categories' => $categorieRepository->trouverTriees(),
         ]);
     }
@@ -177,7 +177,7 @@ class ProduitAdminController extends AbstractController
      */
     private function synchroniser(Produit $produit, Request $request, JourRetraitRepository $jourRetraitRepository, EntityManagerInterface $em): void
     {
-        $jours = $jourRetraitRepository->findAll();
+        $jours = $jourRetraitRepository->trouverTriesParJourSemaine();
 
         if (Produit::UNITE_PIECE === $produit->getUnite()) {
             $this->synchroniserStockProduit($produit, $request, $jours, $em);

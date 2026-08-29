@@ -18,11 +18,11 @@ class JourRetraitAdminController extends AbstractController
     #[Route('', name: 'admin_jours_index', methods: ['GET'])]
     public function index(JourRetraitRepository $jourRetraitRepository): Response
     {
-        $joursExistants = array_map(fn (JourRetrait $j) => $j->getJour(), $jourRetraitRepository->findAll());
+        $joursExistants = array_map(fn (JourRetrait $j) => $j->getJour(), $jourRetraitRepository->trouverTriesParJourSemaine());
         $joursDisponibles = array_diff(JourRetrait::JOURS_VALIDES, $joursExistants);
 
         return $this->render('admin/jour_retrait/index.html.twig', [
-            'jours' => $jourRetraitRepository->findAll(),
+            'jours' => $jourRetraitRepository->trouverTriesParJourSemaine(),
             'joursDisponibles' => $joursDisponibles,
         ]);
     }

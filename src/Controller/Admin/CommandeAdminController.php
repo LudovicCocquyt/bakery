@@ -75,7 +75,7 @@ class CommandeAdminController extends AbstractController
         ksort($totauxParCategorie);
 
         return $this->render('admin/commande/index.html.twig', [
-            'jours' => $jourRetraitRepository->findAll(),
+            'jours' => $jourRetraitRepository->trouverTriesParJourSemaine(),
             'dateChoisie' => $dateChoisie,
             'datePrecedente' => $datePrecedente,
             'dateSuivante' => $dateSuivante,
