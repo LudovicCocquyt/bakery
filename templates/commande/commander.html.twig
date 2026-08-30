@@ -13,84 +13,73 @@
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('commande') }}">
 
             {% for groupe in groupes %}
-                <div class="carte">
-                    <h2 class="nom-categorie">{{ groupe.nom ?: 'Autres produits' }}</h2>
+                <h2 class="nom-categorie">{{ groupe.nom ?: 'Autres produits' }}</h2>
 
-                    {% if groupe.produitsPiece is not empty %}
-                        <table>
-                            <thead>
-                                <tr><th></th><th>Produit</th><th>Prix</th><th>Stock restant</th><th>Quantité</th></tr>
-                            </thead>
-                            <tbody>
-                            {% for produit in groupe.produitsPiece %}
-                                {% set stock = produit.getStockPourJour(jourRetrait) %}
-                                <tr>
-                                    <td>
-                                        {% if produit.image %}
-                                            <img class="miniature" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ produit.nom }}
-                                        {% if produit.description %}
-                                            <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ produit.prix }} €</td>
-                                    <td>{{ stock.stockRestant }}</td>
-                                    <td>
-                                        {% if stock.estEpuise %}
-                                            <span class="badge inactif">Épuisé</span>
-                                        {% else %}
-                                            <input type="number" name="quantites[{{ produit.id }}]" min="0" max="{{ stock.stockRestant }}" value="0" style="width: 5rem;">
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    {% endif %}
-
-                    {% for produit in groupe.produitsKilo %}
-                        <div style="display: flex; align-items: start; gap: 0.75rem; margin-top: {{ loop.first and groupe.produitsPiece is empty ? '0' : '1.5rem' }};">
-                            {% if produit.image %}
-                                <img class="miniature" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">
-                            {% endif %}
-                            <div style="flex: 1;">
-                                <h3 style="margin: 0 0 0.3rem 0;">
-                                    {{ produit.nom }}
-                                    {% if produit.description %}
-                                        <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
+                {% for produit in groupe.produitsPiece %}
+                    {% set stock = produit.getStockPourJour(jourRetrait) %}
+                    <div class="produit-carte">
+                        {% if produit.image %}
+                            <img class="produit-image-large" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">
+                        {% endif %}
+                        <div class="produit-contenu">
+                            <h3>
+                                {{ produit.nom }}
+                                {% if produit.description %}
+                                    <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
+                                {% endif %}
+                            </h3>
+                            <div class="ligne-detail"><span class="libelle-detail">Prix</span><span>{{ produit.prix }} €</span></div>
+                            <div class="ligne-detail"><span class="libelle-detail">Stock restant</span><span>{{ stock.stockRestant }}</span></div>
+                            <div class="ligne-detail">
+                                <span class="libelle-detail">Quantité</span>
+                                <span>
+                                    {% if stock.estEpuise %}
+                                        <span class="badge inactif">Épuisé</span>
+                                    {% else %}
+                                        <input type="number" name="quantites[{{ produit.id }}]" min="0" max="{{ stock.stockRestant }}" value="0" style="width: 5rem;">
                                     {% endif %}
-                                </h3>
-                                <p style="margin: 0 0 0.5rem 0;"><strong>Prix au kg : {{ produit.prix }} €</strong></p>
-                                <table>
-                                    <thead>
-                                        <tr><th>Format</th><th>Stock restant</th><th>Quantité</th></tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for variante in produit.variantes %}
-                                        {% set stock = variante.getStockPourJour(jourRetrait) %}
-                                        {% if stock is not null %}
-                                            <tr>
-                                                <td>{{ variante.libelle }}</td>
-                                                <td>{{ stock.stockRestant }}</td>
-                                                <td>
-                                                    {% if stock.estEpuise %}
-                                                        <span class="badge inactif">Épuisé</span>
-                                                    {% else %}
-                                                        <input type="number" name="quantitesVariantes[{{ variante.id }}]" min="0" max="{{ stock.stockRestant }}" value="0" style="width: 5rem;">
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                        {% endif %}
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+                                </span>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
+
+                {% for produit in groupe.produitsKilo %}
+                    <div class="produit-carte">
+                        {% if produit.image %}
+                            <img class="produit-image-large" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">
+                        {% endif %}
+                        <div class="produit-contenu">
+                            <h3>
+                                {{ produit.nom }}
+                                {% if produit.description %}
+                                    <span class="info-bulle" tabindex="0">i<span class="texte-bulle">{{ produit.description }}</span></span>
+                                {% endif %}
+                            </h3>
+                            <div class="ligne-detail"><span class="libelle-detail">Prix au kg</span><span>{{ produit.prix }} €</span></div>
+
+                            {% for variante in produit.variantes %}
+                                {% set stockVariante = variante.getStockPourJour(jourRetrait) %}
+                                {% if stockVariante is not null %}
+                                    <div class="sous-carte-variante">
+                                        <div class="ligne-detail"><span class="libelle-detail">Format</span><span>{{ variante.libelle }}</span></div>
+                                        <div class="ligne-detail"><span class="libelle-detail">Stock restant</span><span>{{ stockVariante.stockRestant }}</span></div>
+                                        <div class="ligne-detail">
+                                            <span class="libelle-detail">Quantité</span>
+                                            <span>
+                                                {% if stockVariante.estEpuise %}
+                                                    <span class="badge inactif">Épuisé</span>
+                                                {% else %}
+                                                    <input type="number" name="quantitesVariantes[{{ variante.id }}]" min="0" max="{{ stockVariante.stockRestant }}" value="0" style="width: 5rem;">
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
             {% endfor %}
 
             <div class="carte">

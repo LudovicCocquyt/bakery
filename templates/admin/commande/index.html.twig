@@ -34,15 +34,15 @@
             {% endif %}
         </p>
     {% else %}
-        <div class="carte">
+        <div class="carte" style="background-color: #f6e1cd;">
             <h2>Total à préparer</h2>
             {% for nomCategorie, produits in totauxParCategorie %}
                 <h3 class="nom-categorie" style="font-size: 1rem; margin-top: 1rem;">{{ nomCategorie }}</h3>
-                <table>
+                <table class="responsive-mobile">
                     <thead><tr><th>Produit</th><th>Quantité totale</th></tr></thead>
                     <tbody>
                     {% for libelle, quantite in produits %}
-                        <tr><td>{{ libelle }}</td><td><strong>{{ quantite }}</strong></td></tr>
+                        <tr><td data-label="Produit">{{ libelle }}</td><td data-label="Quantité totale"><strong>{{ quantite }}</strong></td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -59,11 +59,11 @@
                 {% if commande.telephoneClient %} &mdash; {{ commande.telephoneClient }}{% endif %}
                 <br><small>Commandé le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
 
-                <table>
+                <table class="responsive-mobile">
                     <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr></thead>
                     <tbody>
                     {% for ligne in commande.lignes %}
-                        <tr><td>{{ ligne.libelleComplet }}</td><td>{{ ligne.quantite }}</td><td>{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td></tr>
+                        <tr><td data-label="Produit">{{ ligne.libelleComplet }}</td><td data-label="Quantité">{{ ligne.quantite }}</td><td data-label="Prix">{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

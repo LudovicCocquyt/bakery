@@ -33,8 +33,17 @@ class ProduitAdminController extends AbstractController
     #[Route('', name: 'admin_produits_index', methods: ['GET'])]
     public function index(ProduitRepository $produitRepository): Response
     {
+        // Regroupe les produits par catégorie (déjà triés par catégorie
+        // puis par nom par le repository) pour un affichage en sections
+        // plutôt qu'un tableau plat avec une colonne "catégorie" répétée.
+        $groupes = [];
+        foreach ($produitRepository->trouverTousTriesParCategorie() as $produit) {
+            $nomCategorie = $produit->getCategorie()?->getNom() ?? 'Sans catégorie';
+            $groupes[$nomCategorie][] = $produit;
+        }
+
         return $this->render('admin/produit/index.html.twig', [
-            'produits' => $produitRepository->trouverTousTriesParCategorie(),
+            'groupes' => $groupes,
         ]);
     }
 

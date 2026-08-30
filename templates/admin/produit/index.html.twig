@@ -6,30 +6,36 @@
     <h1>Produits</h1>
     <p><a href="{{ path('admin_produits_nouveau') }}" class="btn">+ Ajouter un produit</a></p>
 
-    <table>
-        <thead>
-            <tr><th></th><th>Nom</th><th>Catégorie</th><th>Vente</th><th>Prix</th><th>Statut</th><th></th></tr>
-        </thead>
-        <tbody>
-        {% for produit in produits %}
-            <tr>
-                <td>{% if produit.image %}<img class="miniature" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">{% endif %}</td>
-                <td>{{ produit.nom }}</td>
-                <td>{{ produit.categorie ? produit.categorie.nom : '—' }}</td>
-                <td>{{ produit.estVenduAuKilo ? 'Au kilo (' ~ produit.variantes|length ~ ' variante(s))' : 'À la pièce' }}</td>
-                <td>{{ produit.prix }} €{{ produit.estVenduAuKilo ? '/kg' : '' }}</td>
-                <td><span class="badge {{ produit.actif ? 'actif' : 'inactif' }}">{{ produit.actif ? 'Actif' : 'Inactif' }}</span></td>
-                <td>
-                    <a href="{{ path('admin_produits_modifier', {id: produit.id}) }}" class="btn secondaire">Modifier</a>
-                    <form class="inline" method="post" action="{{ path('admin_produits_supprimer', {id: produit.id}) }}" onsubmit="return confirm('Supprimer ce produit ?');">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('supprimer_produit_' ~ produit.id) }}">
-                        <button type="submit" class="btn danger">Supprimer</button>
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="7">Aucun produit pour le moment.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    {% for nomCategorie, produits in groupes %}
+        <div class="carte">
+            <h2 class="nom-categorie">{{ nomCategorie }}</h2>
+            <table class="responsive-mobile">
+                <thead>
+                    <tr><th></th><th>Nom</th><th>Vente</th><th>Prix</th><th>Statut</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for produit in produits %}
+                    <tr>
+                        <td data-label="Image">{% if produit.image %}<img class="miniature" src="/uploads/produits/{{ produit.image }}" alt="{{ produit.nom }}">{% endif %}</td>
+                        <td data-label="Nom">{{ produit.nom }}</td>
+                        <td data-label="Vente">{{ produit.estVenduAuKilo ? 'Au kilo (' ~ produit.variantes|length ~ ' variante(s))' : 'À la pièce' }}</td>
+                        <td data-label="Prix">{{ produit.prix }} €{{ produit.estVenduAuKilo ? '/kg' : '' }}</td>
+                        <td data-label="Statut"><span class="badge {{ produit.actif ? 'actif' : 'inactif' }}">{{ produit.actif ? 'Actif' : 'Inactif' }}</span></td>
+                        <td data-label="Actions">
+                            <div class="actions">
+                                <a href="{{ path('admin_produits_modifier', {id: produit.id}) }}" class="btn secondaire">Modifier</a>
+                                <form class="inline" method="post" action="{{ path('admin_produits_supprimer', {id: produit.id}) }}" onsubmit="return confirm('Supprimer ce produit ?');">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('supprimer_produit_' ~ produit.id) }}">
+                                    <button type="submit" class="btn danger">Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>Aucun produit pour le moment.</p>
+    {% endfor %}
 {% endblock %}
