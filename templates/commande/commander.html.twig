@@ -15,6 +15,7 @@
             {% for groupe in groupes %}
                 <h2 class="nom-categorie">{{ groupe.nom ?: 'Autres produits' }}</h2>
 
+                <div class="grille-produits">
                 {% for produit in groupe.produitsPiece %}
                     {% set stock = produit.getStockPourJour(jourRetrait) %}
                     <div class="produit-carte">
@@ -80,6 +81,7 @@
                         </div>
                     </div>
                 {% endfor %}
+                </div>
             {% endfor %}
 
             <div class="carte">
