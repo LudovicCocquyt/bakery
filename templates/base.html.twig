@@ -62,7 +62,7 @@
             line-height: 1.4;
             white-space: normal;
             width: max-content;
-            max-width: 220px;
+            max-width: min(220px, 75vw);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             transition: opacity 0.15s ease, visibility 0.15s ease;
             z-index: 20;
@@ -84,8 +84,8 @@
         /* Carte produit unifiée (côté client) : même structure pour un
            produit vendu à la pièce ou au kilo — image pleine largeur en
            haut, nom, puis le détail (prix/stock/quantité ou variantes). */
-        .produit-carte { border: 1px solid #e6dcd0; border-radius: 10px; overflow: hidden; margin-bottom: 1rem; background: white; }
-        .produit-carte .produit-image-large { width: 100%; height: 180px; object-fit: cover; display: block; background: #f1ebe0; }
+        .produit-carte { border: 1px solid #e6dcd0; border-radius: 10px; margin-bottom: 1rem; background: white; }
+        .produit-carte .produit-image-large { width: 100%; height: 180px; object-fit: cover; display: block; background: #f1ebe0; border-radius: 10px 10px 0 0; }
         .produit-carte .produit-contenu { padding: 0.85rem 1rem; }
         .produit-carte h3 { margin: 0 0 0.5rem 0; }
         .ligne-detail { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #f1ebe0; gap: 0.75rem; }

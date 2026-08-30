@@ -9,12 +9,10 @@
     {% if joursAvecDate is empty %}
         <p>Aucun jour de retrait n'est disponible pour le moment, merci de repasser plus tard.</p>
     {% else %}
-        <div class="carte">
-            {% for item in joursAvecDate %}
-                <a class="btn" style="margin: 0.3rem;" href="{{ path('commande_commander', {jour: item.jourRetrait.jour}) }}">
-                    {{ item.jourRetrait.jour|capitalize }} {{ item.date|date('d/m') }}
-                </a>
-            {% endfor %}
-        </div>
+        {% for item in joursAvecDate %}
+            <a class="btn" style="display: block; text-align: center; margin-bottom: 0.75rem;" href="{{ path('commande_commander', {jour: item.jourRetrait.jour}) }}">
+                {{ item.jourRetrait.jour|capitalize }} {{ item.date|date('d/m') }}
+            </a>
+        {% endfor %}
     {% endif %}
 {% endblock %}
