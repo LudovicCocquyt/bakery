@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paramètres{% endblock %}
+
+{% block body %}
+    <h1>Paramètres</h1>
+
+    <div class="carte">
+        <a href="{{ path('admin_produits_index') }}" class="btn" style="display: block; text-align: center; margin-bottom: 0.75rem;">Produits</a>
+        <a href="{{ path('admin_categories_index') }}" class="btn" style="display: block; text-align: center; margin-bottom: 0.75rem;">Catégories</a>
+        <a href="{{ path('admin_jours_index') }}" class="btn" style="display: block; text-align: center; margin-bottom: 0.75rem;">Jours de retrait</a>
+        <a href="{{ path('admin_configuration_index') }}" class="btn" style="display: block; text-align: center;">Configuration</a>
+    </div>
+{% endblock %}

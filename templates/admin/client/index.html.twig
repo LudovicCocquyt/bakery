@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients{% endblock %}
+
+{% block body %}
+    <h1>Fiches client</h1>
+    <p><a href="{{ path('admin_clients_nouveau') }}" class="btn">+ Créer une fiche client</a></p>
+
+    <div class="carte">
+        <label for="recherche-client">Rechercher (nom, email ou téléphone)</label>
+        <input type="text" id="recherche-client" placeholder="Tape pour rechercher..." value="{{ terme }}" autocomplete="off">
+    </div>
+
+    <div id="resultats-clients">
+        {% if clients is empty %}
+            <p>Aucun client pour le moment.</p>
+        {% else %}
+            <table class="responsive-mobile">
+                <thead><tr><th>Nom & prénom</th><th>Email</th><th>Téléphone</th><th></th></tr></thead>
+                <tbody>
+                {% for client in clients %}
+                    <tr>
+                        <td data-label="Nom & prénom">{{ client.nomPrenom }}</td>
+                        <td data-label="Email">{{ client.email }}</td>
+                        <td data-label="Téléphone">{{ client.telephone ?: '—' }}</td>
+                        <td data-label="Actions"><a class="btn secondaire" href="{{ path('admin_clients_fiche', {id: client.id}) }}">Voir la fiche</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+
+    <script src="/js/recherche-clients.js"></script>
+{% endblock %}

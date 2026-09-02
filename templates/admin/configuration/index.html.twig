@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Configuration{% endblock %}
+
+{% block body %}
+    <h1>Configuration du site</h1>
+
+    <form method="post" action="{{ path('admin_configuration_enregistrer') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('configuration') }}">
+
+        <div class="carte">
+            <h2>Identité du site</h2>
+
+            <label for="nom_site">Nom du site (affiché en en-tête)</label>
+            <input type="text" id="nom_site" name="nom_site" value="{{ configuration.nomSite }}">
+
+            <label for="url_retour_site">URL de retour vers le site web principal</label>
+            <input type="text" id="url_retour_site" name="url_retour_site" value="{{ configuration.urlRetourSite }}" placeholder="https://ton-site.fr">
+            <p><small>Si renseignée, un bouton apparaît en en-tête pour les visiteurs non connectés, à la place de tout accès à l'admin (jamais affiché publiquement). Laisse vide pour n'afficher aucun bouton.</small></p>
+
+            <label for="nom_bouton_retour">Nom du bouton</label>
+            <input type="text" id="nom_bouton_retour" name="nom_bouton_retour" value="{{ configuration.nomBoutonRetour }}">
+        </div>
+
+        <div class="carte">
+            <h2>Fonctionnalités</h2>
+
+            <label>
+                <input type="checkbox" name="fiche_client_activee" value="1" {{ configuration.ficheClientActivee ? 'checked' : '' }} style="width: auto; display: inline;">
+                Activer les fiches client (fidélisation, historique des achats)
+            </label>
+
+            <label>
+                <input type="checkbox" name="solde_client_activee" value="1" {{ configuration.soldeClientActivee ? 'checked' : '' }} style="width: auto; display: inline;">
+                Activer le solde client (réserve d'argent / dette)
+            </label>
+        </div>
+
+        <div class="carte">
+            <h2>Fidélité</h2>
+            <p><small>Détermine quand la fiche client signale qu'une remise/cadeau est méritée. La remise elle-même reste toujours ajoutée manuellement. Choisis "Aucun" pour ne jamais avoir de détection automatique — tu géreras alors les remises uniquement à la main.</small></p>
+
+            <label for="fidelite_mode">Se déclenche au bout de...</label>
+            <select id="fidelite_mode" name="fidelite_mode" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #d8cdbc;">
+                <option value="aucun" {{ configuration.fideliteMode == 'aucun' ? 'selected' : '' }}>Aucun (manuel uniquement)</option>
+                <option value="passages" {{ configuration.fideliteMode == 'passages' ? 'selected' : '' }}>Nombre de passages (commandes)</option>
+                <option value="articles" {{ configuration.fideliteMode == 'articles' ? 'selected' : '' }}>Nombre d'articles achetés</option>
+                <option value="euros" {{ configuration.fideliteMode == 'euros' ? 'selected' : '' }}>Montant total dépensé (€)</option>
+            </select>
+
+            <label for="fidelite_seuil">Seuil</label>
+            <input type="number" id="fidelite_seuil" name="fidelite_seuil" value="{{ configuration.fideliteSeuil }}" min="1">
+        </div>
+
+        <div class="carte">
+            <h2>Apparence</h2>
+
+            <button type="button" class="btn secondaire" onclick="reinitialiserApparence()">Valeurs par défaut</button>
+
+            <label for="police_texte">Police de texte (nom CSS)</label>
+            <input type="text" id="police_texte" name="police_texte" value="{{ configuration.policeTexte }}">
+
+            <label for="taille_texte_base">Taille du texte (px)</label>
+            <input type="number" id="taille_texte_base" name="taille_texte_base" value="{{ configuration.tailleTexteBase }}" min="10" max="24">
+
+            <label for="taille_titre1">Taille des grands titres (px)</label>
+            <input type="number" id="taille_titre1" name="taille_titre1" value="{{ configuration.tailleTitre1 }}" min="16" max="48">
+
+            <label for="taille_titre2">Taille des sous-titres (px)</label>
+            <input type="number" id="taille_titre2" name="taille_titre2" value="{{ configuration.tailleTitre2 }}" min="14" max="36">
+
+            <label for="couleur_principale">Couleur principale (boutons, accents)</label>
+            <input type="color" id="couleur_principale" name="couleur_principale" value="{{ configuration.couleurPrincipale }}">
+
+            <label for="couleur_texte">Couleur du texte</label>
+            <input type="color" id="couleur_texte" name="couleur_texte" value="{{ configuration.couleurTexte }}">
+
+            <label for="couleur_fond">Couleur de fond</label>
+            <input type="color" id="couleur_fond" name="couleur_fond" value="{{ configuration.couleurFond }}">
+
+            <label for="couleur_bordure">Couleur des bordures</label>
+            <input type="color" id="couleur_bordure" name="couleur_bordure" value="{{ configuration.couleurBordure }}">
+        </div>
+
+        <button type="submit" class="btn">Enregistrer</button>
+    </form>
+
+    <script>
+        function reinitialiserApparence() {
+            document.getElementById('police_texte').value = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+            document.getElementById('taille_texte_base').value = 16;
+            document.getElementById('taille_titre1').value = 28;
+            document.getElementById('taille_titre2').value = 20;
+            document.getElementById('couleur_principale').value = '#b5651d';
+            document.getElementById('couleur_texte').value = '#2b2118';
+            document.getElementById('couleur_fond').value = '#fdf8f2';
+            document.getElementById('couleur_bordure').value = '#e6dcd0';
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ client.nomPrenom }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('admin_clients_index') }}">&larr; Retour aux clients</a></p>
+
+    <div class="carte" style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin-bottom: 0.3rem;">{{ client.nomPrenom }}</h1>
+            <p style="margin: 0;">{{ client.email }}{% if client.telephone %} &mdash; {{ client.telephone }}{% endif %}</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ path('admin_clients_modifier', {id: client.id}) }}" class="btn secondaire">Modifier la fiche</a>
+            <form method="post" action="{{ path('admin_clients_supprimer', {id: client.id}) }}" onsubmit="return confirm('Supprimer cette fiche client ? Ses commandes resteront mais ne seront plus rattachées.');">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('supprimer_client_' ~ client.id) }}">
+                <button type="submit" class="btn danger">Supprimer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="cartes-cote-a-cote">
+        {% if configuration.soldeClientActivee %}
+            <div class="carte carte-solde {{ client.solde > 0 ? 'solde-positif' : (client.solde < 0 ? 'solde-negatif' : 'solde-neutre') }}">
+                <h2>Solde client
+                    <span class="info-bulle" tabindex="0">i
+                        <span class="texte-bulle">Seul un dépôt est possible ici. Le solde diminue (et peut passer en dette) uniquement via le mode de paiement "Solde client" au règlement d'une commande.</span>
+                    </span>
+                </h2>
+                <p style="font-size: 1.3em;"><strong>{{ client.solde }} €</strong>
+                    {% if client.solde > 0 %}<span class="badge-paye">réserve</span>
+                    {% elseif client.solde < 0 %}<span class="montant-dette">(dette)</span>
+                    {% endif %}
+                </p>
+                <form method="post" action="{{ path('admin_clients_solde_ajouter', {id: client.id}) }}" style="display: flex; gap: 0.4rem; align-items: center;">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('solde_' ~ client.id) }}">
+                    <input type="text" name="montant" placeholder="Montant €" style="width: 6rem;" required>
+                    <button type="submit" class="btn secondaire">Ajouter au solde</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <div class="carte">
+            <h2>Ajouter une remise / un cadeau</h2>
+            <form method="post" action="{{ path('admin_clients_ajouter_remise', {id: client.id}) }}" style="display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap;">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('ajouter_remise_' ~ client.id) }}">
+                <div>
+                    <label for="remise_nom">Nom</label>
+                    <input type="text" id="remise_nom" name="nom" placeholder="Ex: Geste commercial" required>
+                </div>
+                <div>
+                    <label for="remise_montant">Montant €</label>
+                    <input type="text" id="remise_montant" name="montant" style="width: 6rem;" required>
+                </div>
+                <button type="submit" class="btn">Ajouter</button>
+            </form>
+        </div>
+    </div>
+
+    {% if progressionFidelite %}
+        <div class="carte" style="background-color: #d7f0d0;">
+            <h2>Fidélité</h2>
+            {% if progressionFidelite.mode == 'passages' %}
+                <p>{{ progressionFidelite.compteur }} passage(s) &mdash; seuil : {{ progressionFidelite.seuil }}</p>
+            {% elseif progressionFidelite.mode == 'articles' %}
+                <p>{{ progressionFidelite.compteur }} article(s) acheté(s) &mdash; seuil : {{ progressionFidelite.seuil }}</p>
+            {% else %}
+                <p>{{ progressionFidelite.compteur }} € dépensé(s) &mdash; seuil : {{ progressionFidelite.seuil }} €</p>
+            {% endif %}
+            <p><strong>🎉 Seuil atteint !</strong></p>
+            <form method="post" action="{{ path('admin_clients_ajouter_remise_fidelite', {id: client.id}) }}" style="display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap;">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('remise_fidelite_' ~ client.id) }}">
+                <div>
+                    <label for="remise_fidelite_montant">Montant de la remise €</label>
+                    <input type="text" id="remise_fidelite_montant" name="montant" style="width: 6rem;" required>
+                </div>
+                <button type="submit" class="btn">Valider la remise fidélité</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="carte">
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+            Historique
+            <a href="{{ path('admin_clients_commande_nouvelle', {id: client.id}) }}" class="btn secondaire" style="font-size: 0.9rem;">+ Ajouter une vente directe</a>
+        </h2>
+
+        {% if historique is empty %}
+            <p>Aucun historique pour le moment.</p>
+        {% else %}
+            {% for entree in historique %}
+                {% if entree.type == 'commande' %}
+                    {% set commande = entree.objet %}
+                    <div class="ligne-historique">
+                        <div>
+                            <strong>{{ commande.dateCommande|date('d/m/Y') }}</strong>
+                            &mdash;
+                            {% if commande.estSaisieSimplifiee %}
+                                Vente directe
+                            {% else %}
+                                commande #{{ commande.id }}
+                            {% endif %}
+                            {% if commande.estPayee %}
+                                &mdash; {{ commande.libelleModePaiement }}
+                            {% endif %}
+                            <span class="info-bulle" tabindex="0">i
+                                <span class="texte-bulle">
+                                    {% if commande.estSaisieSimplifiee %}
+                                        {{ commande.nombreArticlesManuel }} article(s)
+                                    {% elseif commande.lignes is not empty %}
+                                        {% for ligne in commande.lignes %}
+                                            {{ ligne.libelleComplet }} x{{ ligne.quantite }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        Aucun détail
+                                    {% endif %}
+                                </span>
+                            </span>
+                        </div>
+                        <div>
+                            {% if commande.estPayee %}
+                                <span class="badge-paye">{{ commande.montantPaye }} € payé</span>
+                            {% else %}
+                                {{ _self.formulaire_marquer_paye(commande, configuration, client) }}
+                                <a href="{{ path('admin_clients_commande_modifier', {clientId: client.id, id: commande.id}) }}" class="btn secondaire">Modifier</a>
+                                <form class="inline" method="post" action="{{ path('admin_clients_commande_supprimer', {clientId: client.id, id: commande.id}) }}" onsubmit="return confirm('Supprimer cette commande ?');">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('supprimer_commande_' ~ commande.id) }}">
+                                    <button type="submit" class="btn danger">Supprimer</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elseif entree.type == 'remise' %}
+                    {% set remise = entree.objet %}
+                    <div class="ligne-historique">
+                        <div><strong>{{ remise.date|date('d/m/Y') }}</strong> &mdash; {{ remise.nom }}</div>
+                        <div><span class="badge-remise">{{ remise.montant }} €</span></div>
+                    </div>
+                {% else %}
+                    {% set mouvement = entree.objet %}
+                    <div class="ligne-historique">
+                        <div><strong>{{ mouvement.date|date('d/m/Y') }}</strong> &mdash; {{ mouvement.motif }}</div>
+                        <div><span class="badge-paye">{{ mouvement.montant }} €</span></div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if totalPages > 1 %}
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;">
+                {% if page > 1 %}
+                    <a class="btn secondaire" href="{{ path('admin_clients_fiche', {id: client.id, page: page - 1}) }}">&larr; Précédent</a>
+                {% endif %}
+                <span style="align-self: center;">Page {{ page }} / {{ totalPages }}</span>
+                {% if page < totalPages %}
+                    <a class="btn secondaire" href="{{ path('admin_clients_fiche', {id: client.id, page: page + 1}) }}">Suivant &rarr;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% macro formulaire_marquer_paye(commande, configuration, client) %}
+    <form method="post" action="{{ path('admin_commandes_marquer_paye', {id: commande.id}) }}" style="display: inline-flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('marquer_paye_' ~ commande.id) }}">
+        <input type="text" name="montant" placeholder="Montant €" style="width: 6rem; padding: 0.4rem;" required>
+        {% if client and configuration.soldeClientActivee %}
+            <select name="mode_paiement" style="padding: 0.4rem; width: auto;">
+                <option value="especes">Espèces / Carte</option>
+                <option value="solde">Solde client</option>
+                <option value="dette">Dette</option>
+            </select>
+        {% endif %}
+        <button type="submit" class="btn secondaire">Marquer payé</button>
+    </form>
+{% endmacro %}

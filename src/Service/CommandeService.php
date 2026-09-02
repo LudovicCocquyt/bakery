@@ -2,11 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\Client;
 use App\Entity\Commande;
 use App\Entity\JourRetrait;
 use App\Entity\LigneCommande;
 use App\Entity\Produit;
 use App\Entity\VarianteProduit;
+use App\Repository\ClientRepository;
 use App\Repository\StockProduitRepository;
 use App\Repository\StockVarianteRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -82,6 +84,7 @@ class CommandeService
         private readonly EntityManagerInterface $entityManager,
         private readonly StockProduitRepository $stockProduitRepository,
         private readonly StockVarianteRepository $stockVarianteRepository,
+        private readonly ClientRepository $clientRepository,
     ) {
     }
 
@@ -141,6 +144,43 @@ class CommandeService
     }
 
     /**
+     * Retrouve la fiche client correspondant à cet email ou ce téléphone,
+     * ou en crée une nouvelle si aucune ne correspond. C'est ce qui permet
+     * de retrouver facilement son compte à la commande : il suffit d'utiliser
+     * le même email ou le même téléphone qu'une commande précédente.
+     */
+    private function trouverOuCreerClient(string $nom, string $email, ?string $telephone): Client
+    {
+        $client = $this->clientRepository->trouverParEmail($email);
+
+        if (null === $client && null !== $telephone) {
+            $client = $this->clientRepository->trouverParTelephone($telephone);
+        }
+
+        if (null === $client) {
+            $client = new Client();
+            $client->setNomPrenom($nom);
+            $client->setEmail($email);
+            $client->setTelephone($telephone);
+            $this->entityManager->persist($client);
+
+            return $client;
+        }
+
+        // Complète le téléphone sur la fiche existante s'il manquait et
+        // qu'il est fourni cette fois — sans jamais écraser une valeur déjà
+        // présente, et sans casser la contrainte d'unicité si ce téléphone
+        // appartient déjà à une autre fiche.
+        if (null === $client->getTelephone() && null !== $telephone) {
+            if (null === $this->clientRepository->trouverParTelephone($telephone)) {
+                $client->setTelephone($telephone);
+            }
+        }
+
+        return $client;
+    }
+
+    /**
      * Passe une commande : vérifie que le jour est actif, que le stock est
      * suffisant pour chaque ligne (produit à la pièce OU variante au kilo),
      * décrémente le stock, puis enregistre la commande. Tout se fait dans une
@@ -182,6 +222,7 @@ class CommandeService
             $commande->setNomClient($nomClient);
             $commande->setEmailClient($emailClient);
             $commande->setTelephoneClient($telephoneClient);
+            $commande->setClient($this->trouverOuCreerClient($nomClient, $emailClient, $telephoneClient));
             $commande->setJourRetrait($jourRetrait);
             $commande->setDateRetrait($this->prochaineDateDisponible($jourRetrait->getJour()));
 

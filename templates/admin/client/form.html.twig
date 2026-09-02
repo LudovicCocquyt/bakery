@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ client.id ? 'Modifier' : 'Nouvelle' }} fiche client{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('admin_clients_index') }}">&larr; Retour aux clients</a></p>
+    <h1>{{ client.id ? 'Modifier' : 'Nouvelle' }} fiche client</h1>
+
+    <form method="post" class="carte">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('client_' ~ (client.id ?: 'nouveau')) }}">
+
+        <label for="nom_prenom">Nom & prénom</label>
+        <input type="text" id="nom_prenom" name="nom_prenom" value="{{ client.nomPrenom }}" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ client.email }}" required>
+
+        <label for="telephone">Téléphone</label>
+        <input type="tel" id="telephone" name="telephone" value="{{ client.telephone }}">
+
+        <p><small>Chaque champ doit être unique : deux fiches ne peuvent pas partager le même nom, email ou téléphone.</small></p>
+
+        <button type="submit" class="btn" style="margin-top: 0.5rem;">Enregistrer</button>
+    </form>
+{% endblock %}

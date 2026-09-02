@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier la commande{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('admin_clients_fiche', {id: client.id}) }}">&larr; Retour à la fiche de {{ client.nomPrenom }}</a></p>
+    <h1>Modifier la commande &mdash; {{ client.nomPrenom }}</h1>
+    <p><small>Commande en ligne : tu peux ajouter ou enlever des articles librement.</small></p>
+
+    <form method="post" action="{{ path('admin_clients_commande_modifier', {clientId: client.id, id: commande.id}) }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('commande_detail_' ~ commande.id) }}">
+
+        <div class="carte">
+            <h2>Articles</h2>
+            <div id="liste-lignes">
+                {% for ligne in commande.lignes %}
+                    {{ _self.ligne_commande(ligne.varianteProduit ? 'variante:' ~ ligne.varianteProduit.id : 'produit:' ~ ligne.produit.id, ligne.quantite, produits) }}
+                {% endfor %}
+            </div>
+            <button type="button" class="btn secondaire" onclick="ajouterLigne()">+ Ajouter un article</button>
+        </div>
+
+        <button type="submit" class="btn">Enregistrer</button>
+    </form>
+
+    <template id="template-ligne">
+        {{ _self.ligne_commande('', 1, produits) }}
+    </template>
+
+    <script>
+        function ajouterLigne() {
+            const template = document.getElementById('template-ligne').innerHTML;
+            const conteneur = document.createElement('div');
+            conteneur.innerHTML = template;
+            document.getElementById('liste-lignes').appendChild(conteneur.firstElementChild);
+        }
+    </script>
+{% endblock %}
+
+{% macro ligne_commande(optionSelectionnee, quantite, produits) %}
+    <div class="carte ligne-commande-manuelle" style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label>Article</label>
+            <select name="lignes[][option]">
+                <option value="">-- Choisir --</option>
+                {% for produit in produits %}
+                    {% if produit.estVenduAuKilo %}
+                        {% for variante in produit.variantes %}
+                            <option value="variante:{{ variante.id }}" {{ optionSelectionnee == 'variante:' ~ variante.id ? 'selected' : '' }}>
+                                {{ produit.nom }} ({{ variante.libelle }})
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="produit:{{ produit.id }}" {{ optionSelectionnee == 'produit:' ~ produit.id ? 'selected' : '' }}>
+                            {{ produit.nom }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Quantité</label>
+            <input type="number" name="lignes[][quantite]" value="{{ quantite }}" min="1" style="width: 6rem;">
+        </div>
+        <div>
+            <button type="button" class="btn danger" onclick="this.closest('.ligne-commande-manuelle').remove()">Retirer</button>
+        </div>
+    </div>
+{% endmacro %}

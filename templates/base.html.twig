@@ -1,158 +1,46 @@
+{% set config = configuration() %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}La Boulangerie{% endblock %}</title>
+    <title>{% block title %}{{ config.nomSite }}{% endblock %}</title>
     <style>
-        :root { --couleur-principale: #b5651d; --couleur-texte: #2b2118; --couleur-fond: #fdf8f2; }
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--couleur-fond);
-            color: var(--couleur-texte);
-            margin: 0;
-            line-height: 1.5;
-        }
-        header {
-            background: var(--couleur-principale);
-            color: white;
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        header a { color: white; text-decoration: none; font-weight: 600; }
-        header nav a { margin-left: 1rem; opacity: 0.9; font-weight: 400; }
-        main { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
-        @media (min-width: 1024px) { main { max-width: 1100px; } }
-        .flash { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
-        .flash.succes { background: #dff3e3; color: #1e6b34; }
-        .flash.erreur { background: #fbe1e1; color: #a12b2b; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid #e6dcd0; vertical-align: middle; }
-        td .actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        th { font-weight: 600; }
-        .btn { display: inline-block; background: var(--couleur-principale); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 1rem; }
-        .btn.secondaire { background: transparent; color: var(--couleur-principale); border: 1px solid var(--couleur-principale); }
-        .btn.danger { background: #a12b2b; }
-        label { display: block; font-weight: 600; margin-top: 1rem; margin-bottom: 0.3rem; }
-        input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], textarea {
-            width: 100%; padding: 0.6rem; border: 1px solid #d8cdbc; border-radius: 6px; font-size: 1rem;
-        }
-        .carte { background: white; border: 1px solid #e6dcd0; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; }
-        .badge.actif { background: #dff3e3; color: #1e6b34; }
-        .badge.inactif { background: #eee; color: #777; }
-        form.inline { display: inline; }
-        .miniature { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; vertical-align: middle; margin-right: 0.5rem; }
-        .info-bulle { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: #e6dcd0; color: #6b5c46; font-size: 0.75rem; font-style: normal; cursor: help; margin-left: 0.3rem; }
-        .info-bulle .texte-bulle {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            bottom: 135%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--couleur-texte);
-            color: white;
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            white-space: normal;
-            width: max-content;
-            max-width: min(220px, 75vw);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: opacity 0.15s ease, visibility 0.15s ease;
-            z-index: 20;
-            pointer-events: none;
-        }
-        .info-bulle .texte-bulle::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border: 5px solid transparent;
-            border-top-color: var(--couleur-texte);
-        }
-        .info-bulle:hover .texte-bulle,
-        .info-bulle:focus .texte-bulle { visibility: visible; opacity: 1; }
-        h3.nom-categorie { border-bottom: 2px solid var(--couleur-principale); padding-bottom: 0.3rem; margin-top: 2rem; }
-
-        /* Carte produit unifiée (côté client) : même structure pour un
-           produit vendu à la pièce ou au kilo — image pleine largeur en
-           haut, nom, puis le détail (prix/stock/quantité ou variantes). */
-        .produit-carte { border: 1px solid #e6dcd0; border-radius: 10px; margin-bottom: 1rem; background: white; }
-        .produit-carte .produit-image-large { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #f1ebe0; border-radius: 10px 10px 0 0; }
-        .produit-carte .produit-contenu { padding: 0.85rem 1rem; }
-        .produit-carte h3 { margin: 0 0 0.5rem 0; }
-
-        /* Grille des cartes produit : 1 colonne sur mobile, 2 sur tablette,
-           3 sur PC. Les cartes n'ont plus besoin de leur propre marge basse
-           puisque l'espacement est géré par le "gap" de la grille. */
-        .grille-produits { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
-        .grille-produits .produit-carte { margin-bottom: 0; }
-        @media (min-width: 641px) {
-            .grille-produits { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (min-width: 1024px) {
-            .grille-produits { grid-template-columns: repeat(3, 1fr); }
-        }
-        .ligne-detail { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #f1ebe0; gap: 0.75rem; }
-        .ligne-detail:last-child { border-bottom: none; }
-        .ligne-detail .libelle-detail { font-weight: 600; color: #6b5c46; }
-        .sous-carte-variante { background: #faf6ee; border: 1px solid #f1ebe0; border-radius: 8px; padding: 0.6rem 0.85rem; margin-top: 0.6rem; }
-
-        /* Sur mobile, les tableaux "responsive-mobile" se transforment en
-           liste de cartes empilées (une carte par ligne), plus lisible
-           qu'un tableau étroit et à défilement horizontal sur petit écran. */
-        @media (max-width: 640px) {
-            table.responsive-mobile thead { display: none; }
-            table.responsive-mobile, table.responsive-mobile tbody,
-            table.responsive-mobile tr, table.responsive-mobile td {
-                display: block;
-                width: 100%;
-            }
-            table.responsive-mobile tr {
-                background: white;
-                border: 1px solid #e6dcd0;
-                border-radius: 8px;
-                margin-bottom: 0.75rem;
-                padding: 0.6rem 0.75rem;
-            }
-            table.responsive-mobile td {
-                border: none;
-                padding: 0.35rem 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.75rem;
-                text-align: right;
-            }
-            table.responsive-mobile td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #6b5c46;
-                text-align: left;
-            }
+        /* Valeurs dynamiques issues de /admin/configuration — le reste des
+           styles (mise en page, composants) vit dans les fichiers CSS
+           externes ci-dessous, qui les consomment via ces variables. */
+        :root {
+            --couleur-principale: {{ config.couleurPrincipale }};
+            --couleur-texte: {{ config.couleurTexte }};
+            --couleur-fond: {{ config.couleurFond }};
+            --couleur-bordure: {{ config.couleurBordure }};
+            --font-family: {{ config.policeTexte }};
+            --taille-texte-base: {{ config.tailleTexteBase }}px;
+            --taille-titre1: {{ config.tailleTitre1 }}px;
+            --taille-titre2: {{ config.tailleTitre2 }}px;
         }
     </style>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/commande.css">
+    {% if is_granted('ROLE_ADMIN') %}
+        <link rel="stylesheet" href="/css/admin.css">
+    {% endif %}
 </head>
 <body>
     <header>
-        <a href="{{ path('commande_index') }}">🥐 La Boulangerie</a>
+        <a href="{{ path('commande_index') }}">{{ config.nomSite }}</a>
         <nav>
             {% if is_granted('ROLE_ADMIN') %}
                 <a href="{{ path('admin_commandes_index') }}">Commandes</a>
-                <a href="{{ path('admin_produits_index') }}">Produits</a>
-                <a href="{{ path('admin_categories_index') }}">Catégories</a>
-                <a href="{{ path('admin_jours_index') }}">Jours de retrait</a>
+                {% if config.ficheClientActivee %}
+                    <a href="{{ path('admin_clients_index') }}">Clients</a>
+                {% endif %}
+                <a href="{{ path('admin_parametres_index') }}">Paramètres</a>
                 <a href="{{ path('app_logout') }}">Déconnexion</a>
             {% else %}
-                <a href="{{ path('app_login') }}">Espace admin</a>
+                {% if config.urlRetourSite %}
+                    <a href="{{ config.urlRetourSite }}">{{ config.nomBoutonRetour }}</a>
+                {% endif %}
             {% endif %}
         </nav>
     </header>

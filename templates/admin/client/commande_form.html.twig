@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ commande ? 'Modifier' : 'Nouvelle' }} commande{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('admin_clients_fiche', {id: client.id}) }}">&larr; Retour à la fiche de {{ client.nomPrenom }}</a></p>
+    <h1>{{ commande ? 'Modifier' : 'Ajouter' }} une commande &mdash; {{ client.nomPrenom }}</h1>
+    <p><small>Saisie rapide : pas besoin de détailler chaque produit, juste le nombre d'articles. Le prix peut être renseigné maintenant si tu le connais déjà, sinon tu pourras le marquer payé plus tard.</small></p>
+
+    <form method="post" action="{{ commande ? path('admin_clients_commande_modifier', {clientId: client.id, id: commande.id}) : path('admin_clients_commande_nouvelle', {id: client.id}) }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token(commande ? 'commande_' ~ commande.id : 'commande_nouvelle_' ~ client.id) }}">
+
+        <div class="carte">
+            <label for="date_retrait">Date</label>
+            <input type="date" id="date_retrait" name="date_retrait" value="{{ commande ? commande.dateRetrait|date('Y-m-d') : 'now'|date('Y-m-d') }}" required>
+
+            <label for="nombre_articles">Nombre d'articles</label>
+            <input type="number" id="nombre_articles" name="nombre_articles" min="1" value="{{ commande ? commande.nombreArticlesManuel : 1 }}" required>
+
+            <label for="prix_a_payer">Prix à payer (€) — optionnel</label>
+            <input type="text" id="prix_a_payer" name="prix_a_payer" value="{{ commande and commande.montantPaye ? commande.montantPaye : '' }}" placeholder="Laisse vide si pas encore payé">
+        </div>
+
+        <button type="submit" class="btn">Enregistrer</button>
+    </form>
+{% endblock %}

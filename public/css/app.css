@@ -1,0 +1,98 @@
+/* app.css — styles communs à tout le site (layout, formulaires, boutons,
+   tableaux, badges de base). Les couleurs/polices/tailles proviennent des
+   variables CSS définies dynamiquement dans base.html.twig à partir de la
+   configuration admin (/admin/configuration). */
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--taille-texte-base);
+    background: var(--couleur-fond);
+    color: var(--couleur-texte);
+    margin: 0;
+    line-height: 1.5;
+}
+
+h1 { font-size: var(--taille-titre1); }
+h2 { font-size: var(--taille-titre2); }
+
+header {
+    background: var(--couleur-principale);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+header a { color: white; text-decoration: none; font-weight: 600; }
+header nav a { margin-left: 1rem; opacity: 0.9; font-weight: 400; }
+
+main { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
+@media (min-width: 1024px) { main { max-width: 1100px; } }
+
+.flash { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.flash.succes { background: #dff3e3; color: #1e6b34; }
+.flash.erreur { background: #fbe1e1; color: #a12b2b; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid var(--couleur-bordure); vertical-align: middle; }
+th { font-weight: 600; }
+td .actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+.btn { display: inline-block; background: var(--couleur-principale); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 1rem; }
+.btn.secondaire { background: transparent; color: var(--couleur-principale); border: 1px solid var(--couleur-principale); }
+.btn.danger { background: #a12b2b; }
+
+label { display: block; font-weight: 600; margin-top: 1rem; margin-bottom: 0.3rem; }
+input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], input[type=date], input[type=color], textarea, select {
+    width: 100%; padding: 0.6rem; border: 1px solid #d8cdbc; border-radius: 6px; font-size: 1rem;
+}
+input[type=color] { padding: 0.2rem; height: 2.6rem; }
+
+.carte { background: white; border: 1px solid var(--couleur-bordure); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+
+.badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; }
+.badge.actif { background: #dff3e3; color: #1e6b34; }
+.badge.inactif { background: #eee; color: #777; }
+
+form.inline { display: inline; }
+
+.miniature { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; vertical-align: middle; margin-right: 0.5rem; }
+
+h3.nom-categorie, h2.nom-categorie { border-bottom: 2px solid var(--couleur-principale); padding-bottom: 0.3rem; margin-top: 2rem; }
+
+/* Sur mobile, les tableaux "responsive-mobile" se transforment en liste de
+   cartes empilées (une carte par ligne), plus lisible qu'un tableau étroit
+   et à défilement horizontal sur petit écran. */
+@media (max-width: 640px) {
+    table.responsive-mobile thead { display: none; }
+    table.responsive-mobile, table.responsive-mobile tbody,
+    table.responsive-mobile tr, table.responsive-mobile td {
+        display: block;
+        width: 100%;
+    }
+    table.responsive-mobile tr {
+        background: white;
+        border: 1px solid var(--couleur-bordure);
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        padding: 0.6rem 0.75rem;
+    }
+    table.responsive-mobile td {
+        border: none;
+        padding: 0.35rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: right;
+    }
+    table.responsive-mobile td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6b5c46;
+        text-align: left;
+    }
+}

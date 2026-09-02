@@ -1,0 +1,47 @@
+/* admin.css — spécifique au back-office : badges de paiement/remise/dette,
+   ligne d'historique client, formulaire de variantes produit. */
+
+.badge-paye {
+    display: inline-block;
+    background: #cfe3f6;
+    color: #1c4e78;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.badge-remise {
+    display: inline-block;
+    background: #d7f0d0;
+    color: #2c6b1f;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.montant-dette {
+    color: #a12b2b;
+}
+
+.carte-solde.solde-positif { background-color: #cfe3f6; }
+.carte-solde.solde-negatif { background: #ffc8c8; }
+.carte-solde.solde-neutre { background-color: white; }
+
+.ligne-historique {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--couleur-bordure);
+}
+.ligne-historique:last-child { border-bottom: none; }
+
+.ligne-commande-manuelle { background: #faf6ee; }
+
+.cartes-cote-a-cote { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
+.cartes-cote-a-cote .carte { margin-bottom: 0; }
+@media (min-width: 641px) {
+    .cartes-cote-a-cote { grid-template-columns: repeat(2, 1fr); }
+}

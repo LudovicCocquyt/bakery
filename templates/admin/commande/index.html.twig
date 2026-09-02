@@ -2,6 +2,25 @@
 
 {% block title %}Commandes{% endblock %}
 
+{% macro formulaire_marquer_paye(commande, configuration) %}
+    {% if commande.estPayee %}
+        <span class="badge-paye">{{ commande.montantPaye }} € payé</span>
+    {% else %}
+        <form method="post" action="{{ path('admin_commandes_marquer_paye', {id: commande.id}) }}" style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('marquer_paye_' ~ commande.id) }}">
+            <input type="text" name="montant" placeholder="Montant €" style="width: 6rem; padding: 0.4rem;" required>
+            {% if commande.client and configuration.soldeClientActivee %}
+                <select name="mode_paiement" style="padding: 0.4rem; width: auto;">
+                    <option value="especes">Espèces / Carte</option>
+                    <option value="solde">Solde client</option>
+                    <option value="dette">Dette</option>
+                </select>
+            {% endif %}
+            <button type="submit" class="btn secondaire">Marquer payé</button>
+        </form>
+    {% endif %}
+{% endmacro %}
+
 {% block body %}
     <h1>Commandes</h1>
 
@@ -27,7 +46,7 @@
 
     <h2>Retrait du {{ dateChoisie|date('d/m/Y') }} {% if dateChoisie|date('N') <= 5 %}({{ dateChoisie|date('l') }}){% endif %}</h2>
 
-    {% if commandes is empty %}
+    {% if commandesEnLigne is empty and ventesDirectes is empty %}
         <p>Aucune commande pour cette date.
             {% if datePrecedente %}
                 <a href="{{ path('admin_commandes_index', {date: datePrecedente|date('Y-m-d')}) }}">Voir la date précédente avec des commandes ({{ datePrecedente|date('d/m/Y') }})</a>.
@@ -48,26 +67,63 @@
                 </table>
             {% endfor %}
             <p style="margin-top: 0.75rem;">
-                {{ commandes|length }} commande(s) &mdash; {{ nombreArticles }} article(s) au total
+                {{ (commandesEnLigne|length) + (ventesDirectes|length) }} commande(s) &mdash; {{ nombreArticles }} article(s) en ligne au total
             </p>
         </div>
 
         <h2>Détail des commandes</h2>
-        {% for commande in commandes %}
-            <div class="carte">
-                <strong>{{ commande.nomClient }}</strong> &mdash; {{ commande.emailClient }}
-                {% if commande.telephoneClient %} &mdash; {{ commande.telephoneClient }}{% endif %}
-                <br><small>Commandé le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
+        {% if commandesEnLigne is empty %}
+            <p>Aucune commande en ligne pour cette date.</p>
+        {% else %}
+            {% for commande in commandesEnLigne %}
+                <div class="carte">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <strong>Commande #{{ commande.id }}</strong> &mdash; {{ commande.nomClient }} &mdash; {{ commande.emailClient }}
+                            {% if commande.telephoneClient %} &mdash; {{ commande.telephoneClient }}{% endif %}
+                            {% if commande.client %}
+                                &mdash; <a href="{{ path('admin_clients_fiche', {id: commande.client.id}) }}">Voir la fiche</a>
+                            {% endif %}
+                            <br><small>Commandé le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
+                        </div>
+                        <div>{{ _self.formulaire_marquer_paye(commande, configuration) }}</div>
+                    </div>
 
-                <table class="responsive-mobile">
-                    <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr></thead>
-                    <tbody>
-                    {% for ligne in commande.lignes %}
-                        <tr><td data-label="Produit">{{ ligne.libelleComplet }}</td><td data-label="Quantité">{{ ligne.quantite }}</td><td data-label="Prix">{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endfor %}
+                    <table class="responsive-mobile">
+                        <thead><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr></thead>
+                        <tbody>
+                        {% for ligne in commande.lignes %}
+                            <tr><td data-label="Produit">{{ ligne.libelleComplet }}</td><td data-label="Quantité">{{ ligne.quantite }}</td><td data-label="Prix">{{ ligne.prixUnitaire }} €{{ ligne.varianteProduit ? '/kg' : '/pièce' }}</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            <p><strong>Total commandes en ligne : {{ commandesEnLigne|length }} commande(s) &mdash; {{ nombreArticles }} article(s)</strong></p>
+        {% endif %}
+
+        <h2>Détail des ventes directes</h2>
+        {% if ventesDirectes is empty %}
+            <p>Aucune vente directe pour cette date.</p>
+        {% else %}
+            {% for commande in ventesDirectes %}
+                <div class="carte">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <strong>Commande #{{ commande.id }}</strong> &mdash; {{ commande.nomClient }} &mdash; {{ commande.emailClient }}
+                            {% if commande.telephoneClient %} &mdash; {{ commande.telephoneClient }}{% endif %}
+                            {% if commande.client %}
+                                &mdash; <a href="{{ path('admin_clients_fiche', {id: commande.client.id}) }}">Voir la fiche</a>
+                            {% endif %}
+                            <br><small>Vente directe le {{ commande.dateCommande|date('d/m/Y H:i') }}</small>
+                        </div>
+                        <div>{{ _self.formulaire_marquer_paye(commande, configuration) }}</div>
+                    </div>
+
+                    <p>{{ commande.nombreArticlesManuel }} article(s)</p>
+                </div>
+            {% endfor %}
+            <p><strong>Total ventes directes : {{ ventesDirectes|length }} vente(s) &mdash; {{ nombreArticlesVentesDirectes }} article(s)</strong></p>
+        {% endif %}
     {% endif %}
 {% endblock %}
